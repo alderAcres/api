@@ -1,7 +1,7 @@
 
-# Auth App API
+# API
 
-This is the user profile API to store data for the client-side app. JSON web tokens are used to pass user data between client and sever after being authenticated. Github is used as the authentication service (provider).
+Description..
 
 A live version of the app can be found at ...
 
