@@ -4,27 +4,17 @@ const app = require('./server');
 // const apiRouter = require('../routes/index');
 const axios = require('axios');
 
-// Hooks in all of our standard middleware.
-// composeMiddleware(app, standardMiddleware);
-
-// Hooks in a router for the /api route.
-// app.use('/api', apiRouter);
-
-
 // Client credentials
-// Replace these with your key/secret
-var key = 'apyx0Ol9KonQvo8YJp5ZetIUv5IEgX1xtKtsAQ1sfcCYy9YH9w';
-var secret = 'FY7ntewUL1pRq9Qd0DxAHIXGSyZ8yHcxNMcrKwH1';
+const key = 'apyx0Ol9KonQvo8YJp5ZetIUv5IEgX1xtKtsAQ1sfcCYy9YH9w';
+const secret = 'FY7ntewUL1pRq9Qd0DxAHIXGSyZ8yHcxNMcrKwH1';
 
 // Call details
-var org = 'RI77';
-var status = 'adoptable';
+const org = 'RI77';
+const status = 'adoptable';
 
-// Call the API
-// This is a POST request, because we need the API to generate a new token for us
-//curl -H "Authorization: Bearer {YOUR_ACCESS_TOKEN}" GET https://api.petfinder.com/v2/{CATEGORY}/{ACTION}?{parameter_1}={value_1}&{parameter_2}={value_2}
-
-app.get('/api', async (req, res) => {
+//First sending a post request to our petfinder api with our client credentials to access our token 
+//Secondly, using our token in the header of a get request to access petfinder dog data
+app.get('/api', (req, res) => {
 
  axios.post('https://api.petfinder.com/v2/oauth2/token', 'grant_type=client_credentials&client_id=' + key + '&client_secret=' + secret)
  .then(response => {
@@ -41,17 +31,18 @@ app.get('/api', async (req, res) => {
   })
   .catch(err => console.log(err))
  })
-//  .then(response => console.log('RES', response))
  .then(petData => {
-   console.log('petDATA', petData.data)
+   let dogArr = [];
+   for(let i = 0; i < petData.data.animals.length; i++) {
+     if(petData.data.animals[i].species === 'Dog') dogArr.push({
+       ...petData.data.animals[i],
+       location: petData.data.animals[i].contact.address.postcode 
+     })
+   }
+   res.status(200).send(dogArr)
  })
- .catch(err => res.send(err))
+ .catch(err => res.status(400).send(err))
 })
-
-  
-//Use to get access token:
-//curl -d "grant_type=client_credentials&client_id=apyx0Ol9KonQvo8YJp5ZetIUv5IEgX1xtKtsAQ1sfcCYy9YH9w&client_secret=FY7ntewUL1pRq9Qd0DxAHIXGSyZ8yHcxNMcrKwH1" https://api.petfinder.com/v2/oauth2/token
-
 
 
 const startServer = (port, prod = false) => {
