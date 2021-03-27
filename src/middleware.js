@@ -9,7 +9,7 @@ async function getDogData(req, res, next){
 
     const data = res.locals.data;
     await axios({
-        url: 'https://api.petfinder.com/v2/animals?organization=' + org + '&status=' + status,
+        url: 'https://api.petfinder.com/v2/animals?limit=' + 100 + '&status=' + status,
         method: 'GET',
         headers: {
           'Authorization': 'Bearer ' + data.access_token,
@@ -17,7 +17,7 @@ async function getDogData(req, res, next){
       }
       })
       .then(petData => {
-        let dogArr = [];
+       let dogArr = [];
        for(let i = 0; i < petData.data.animals.length; i++) {
          if(petData.data.animals[i].species === 'Dog') dogArr.push({
            ...petData.data.animals[i],
@@ -29,6 +29,7 @@ async function getDogData(req, res, next){
       })
       .catch(err => next(err))
   }
+  
   
   function getToken(req, res, next){
 
