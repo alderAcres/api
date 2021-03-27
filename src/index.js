@@ -1,6 +1,6 @@
 const express = require ('express');
 const bodyParser = require('body-parser');
-const { getToken, getDogData} = require('./middleware');
+const { getToken, getDogData, getDogDataSort } = require('./middleware');
 const db = require('./db/queries')
 const PORT = process.env.PORT || 3001;
 const app = express();
