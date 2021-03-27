@@ -5,6 +5,9 @@ let secret = 'FY7ntewUL1pRq9Qd0DxAHIXGSyZ8yHcxNMcrKwH1';
 const org = 'RI77';
 const status = 'adoptable';
 
+function getDogDataSort(req, res, next){
+  //
+}
 async function getDogData(req, res, next){
 
     const data = res.locals.data;
@@ -43,5 +46,6 @@ async function getDogData(req, res, next){
 
   module.exports = {
       getToken,
-      getDogData
+      getDogData,
+      getDogDataSort
   }
