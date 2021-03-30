@@ -34,8 +34,7 @@ const getUsers = (request, response) => {
 //GET USER BY ID
 const getUserById = (request, response) => {
   const id = parseInt(request.params.id)
-
-  pool.query('SELECT * FROM users WHERE id = $1', [id], (error, results) => {
+  pool.query('SELECT * FROM users WHERE user_id = $1', [id], (error, results) => {
     if (error) {
       throw error
     }
@@ -62,8 +61,8 @@ const updateUser = (request, response) => {
   const { email, password } = request.body
 
   pool.query(
-    'UPDATE users SET name = $1, email = $2 WHERE id = $3',
-    [email, password],
+    'UPDATE users SET email = $1, password = $2 WHERE user_id = $3',
+    [email, password, id],
     (error, results) => {
       if (error) {
         throw error
@@ -77,7 +76,7 @@ const updateUser = (request, response) => {
 const deleteUser = (request, response) => {
   const id = parseInt(request.params.id)
 
-  pool.query('DELETE FROM users WHERE id = $1', [id], (error, results) => {
+  pool.query('DELETE FROM users WHERE user_id = $1', [id], (error, results) => {
     if (error) {
       throw error
     }
