@@ -5,8 +5,14 @@ let secret = 'FY7ntewUL1pRq9Qd0DxAHIXGSyZ8yHcxNMcrKwH1';
 const org = 'RI77';
 const status = 'adoptable';
 
+//filter dogs without photo
+
 function getDogDataSort(req, res, next){
-  //
+  //let frontend know to send ID over
+  //grba out id from request.body
+  const query = 'select * from preferences where user_id = 1'
+  //get user id
+  //SELECT * from preferences 
 }
 async function getDogData(req, res, next){
 
@@ -22,11 +28,14 @@ async function getDogData(req, res, next){
       .then(petData => {
        let dogArr = [];
        for(let i = 0; i < petData.data.animals.length; i++) {
-         if(petData.data.animals[i].species === 'Dog') dogArr.push({
+         if(petData.data.animals[i].species === 'Dog' && petData.data.animals[i].primary_photo_cropped) {
+           dogArr.push({
            ...petData.data.animals[i],
            location: petData.data.animals[i].contact.address.postcode 
          })
+        }
        }
+       console.log(dogArr.length)
        res.locals.dogData = dogArr;
        next()
       })

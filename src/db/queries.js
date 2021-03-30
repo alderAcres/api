@@ -47,12 +47,12 @@ const getUserById = (request, response) => {
 const createUser = (request, response) => {
   const { email, password } = request.body
   const cryptPw = bcrypt.hashSync(password, SALT_WORK_FACTOR)
-  pool.query('INSERT INTO users (email, password) VALUES ($1, $2)', [email, cryptPw], (error, results) => {
+  
+  pool.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING user_id', [email, cryptPw], (error, results) => {
     if (error) {
       throw error
     }
-    console.log(results)
-    response.status(200).send(`User added with ID: ${results.insertId}`)
+    response.status(200).send(`User added with ID: ${results.rows[0].user_id}`)
   })
 }
 
