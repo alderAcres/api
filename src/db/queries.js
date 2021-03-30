@@ -4,6 +4,8 @@ const bcrypt = require('bcryptjs');
 const conString = "postgres://gekdbamy:bGsx_AIPrccGvowhA5gB4sHDJxTR9iHZ@queenie.db.elephantsql.com:5432/gekdbamy" //our DB url
 const SALT_WORK_FACTOR = 10;
 
+const SECRET = "NEVER EVER MAKE THIS PUBLIC IN PRODUCTION!";
+
 const pool = new Pool({
   connectionString: conString,
   max: 5
