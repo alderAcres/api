@@ -1,8 +1,11 @@
 const Pool = require('pg').Pool;
 const bcrypt = require('bcryptjs');
+const jwt = require("jsonwebtoken");
 
 const conString = "postgres://gekdbamy:bGsx_AIPrccGvowhA5gB4sHDJxTR9iHZ@queenie.db.elephantsql.com:5432/gekdbamy" //our DB url
 const SALT_WORK_FACTOR = 10;
+
+const SECRET = "NEVER EVER MAKE THIS PUBLIC IN PRODUCTION!";
 
 const pool = new Pool({
   connectionString: conString,
@@ -30,6 +33,54 @@ const getUsers = (request, response) => {
     response.status(200).json(results.rows)
   })
 }
+
+//LOGIN
+const getLogin = (request, response) => {
+    
+  pool.query('SELECT * FROM users WHERE email=$1 LIMIT 1', [request.body.email], (error, results) => {
+    if (error) {
+      throw error
+    }
+    if (results.rows.length === 0) {
+      // status 401: unauthorized client
+      response.status(401).json({ message: "Invalid Username" });
+    }
+    
+    const foundUser = results;
+
+     // if the user exists, compare hashed password to a new hash from req.body.password
+     // https://www.npmjs.com/package/bcrypt
+     bcrypt.compare(
+          request.body.password, 
+          foundUser.rows[0].password, function(err,results) {
+         
+            // bcrypt.compare returns a boolean to us, if it is false the passwords did not match!
+            if (results === false) {
+                return response.status(401).json({ message: "Invalid Password" });
+            }
+
+            // create a token using the sign() method
+            // https://github.com/auth0/node-jsonwebtoken
+            const token = jwt.sign(
+               // the first parameter is an object which will become the payload of the token
+               { email: foundUser.rows[0].email },
+               // the second parameter is the secret key we are using to "sign" or encrypt the token
+               SECRET,
+               // the third parameter is an object where we can specify certain properties of the token
+               {
+                 expiresIn: 60 * 60 // expire in one hour
+               }
+            );
+           
+            const user_id = foundUser.rows[0].user_id
+
+            // send back user_id and generated token 
+            return respone.json({ user_id, token });
+          
+          }
+      );
+  })
+
 
 //GET USER BY ID
 const getUserById = (request, response) => {

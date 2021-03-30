@@ -10,6 +10,7 @@ app.use(express.json());
 
 app.post('/signup', db.createUser)
 app.get('/users', db.getUsers)
+app.get('/login', db.getLogin)
 app.get('/users/:id', db.getUserById)
 app.put('/users/:id', db.updateUser)
 app.delete('/users/:id', db.deleteUser)
