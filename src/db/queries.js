@@ -75,7 +75,7 @@ const getLogin = (request, response) => {
             const user_id = foundUser.rows[0].user_id
 
             // send back user_id and generated token 
-            return respone.json({ user_id, token });
+            return response.json({ user_id, token });
           
           }
       );
