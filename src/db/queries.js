@@ -34,59 +34,10 @@ const getUsers = (request, response) => {
   })
 }
 
-//LOGIN
-const getLogin = (request, response) => {
-    
-  pool.query('SELECT * FROM users WHERE email=$1 LIMIT 1', [request.body.email], (error, results) => {
-    if (error) {
-      throw error
-    }
-    if (results.rows.length === 0) {
-      // status 401: unauthorized client
-      response.status(401).json({ message: "Invalid Username" });
-    }
-    
-    const foundUser = results;
-
-     // if the user exists, compare hashed password to a new hash from req.body.password
-     // https://www.npmjs.com/package/bcrypt
-     bcrypt.compare(
-          request.body.password, 
-          foundUser.rows[0].password, function(err,results) {
-         
-            // bcrypt.compare returns a boolean to us, if it is false the passwords did not match!
-            if (results === false) {
-                return response.status(401).json({ message: "Invalid Password" });
-            }
-
-            // create a token using the sign() method
-            // https://github.com/auth0/node-jsonwebtoken
-            const token = jwt.sign(
-               // the first parameter is an object which will become the payload of the token
-               { email: foundUser.rows[0].email },
-               // the second parameter is the secret key we are using to "sign" or encrypt the token
-               SECRET,
-               // the third parameter is an object where we can specify certain properties of the token
-               {
-                 expiresIn: 60 * 60 // expire in one hour
-               }
-            );
-           
-            const user_id = foundUser.rows[0].user_id
-
-            // send back user_id and generated token 
-            return response.json({ user_id, token });
-          
-          }
-      );
-  })
-
-
 //GET USER BY ID
 const getUserById = (request, response) => {
   const id = parseInt(request.params.id)
-
-  pool.query('SELECT * FROM users WHERE id = $1', [id], (error, results) => {
+  pool.query('SELECT * FROM users WHERE user_id = $1', [id], (error, results) => {
     if (error) {
       throw error
     }
@@ -113,8 +64,8 @@ const updateUser = (request, response) => {
   const { email, password } = request.body
 
   pool.query(
-    'UPDATE users SET name = $1, email = $2 WHERE id = $3',
-    [email, password],
+    'UPDATE users SET email = $1, password = $2 WHERE user_id = $3',
+    [email, password, id],
     (error, results) => {
       if (error) {
         throw error
@@ -128,7 +79,7 @@ const updateUser = (request, response) => {
 const deleteUser = (request, response) => {
   const id = parseInt(request.params.id)
 
-  pool.query('DELETE FROM users WHERE id = $1', [id], (error, results) => {
+  pool.query('DELETE FROM users WHERE user_id = $1', [id], (error, results) => {
     if (error) {
       throw error
     }
@@ -136,10 +87,72 @@ const deleteUser = (request, response) => {
   })
 }
 
+const getLogin = (request, response, next) => {
+
+  pool.query('SELECT * FROM users WHERE email=$1 LIMIT 1', [request.body.email], (error, results) => {
+    if (error) {
+      throw error
+    }
+    if (results.rows.length === 0) {
+      // status 401: unauthorized client
+      response.status(401).json({ message: "Invalid Username" });
+    }
+   
+    const foundUser = results;
+
+     // if the user exists, compare hashed password to a new hash from req.body.password
+     // https://www.npmjs.com/package/bcrypt
+     bcrypt.compare(
+      
+      request.body.password, 
+      foundUser.rows[0].password, function(err,results) {
+      
+          // bcrypt.compare returns a boolean to us, if it is false the passwords did not match!
+          if (results === false) {
+            return response.status(401).json({ message: "Invalid Password" });
+          }
+  
+          // create a token using the sign() method
+          // https://github.com/auth0/node-jsonwebtoken
+ 
+          const token = jwt.sign(
+            { email: foundUser.rows[0].email },
+            SECRET,
+            {
+              expiresIn: 60 * 60 // expire in one hour
+            }
+          );
+
+          const user_id = foundUser.rows[0].user_id;
+          //http://expressjs.com/en/5x/api.html#res.cookie
+
+          //return response.json({ user_id, token });
+
+           console.log({ id: user_id, token: token})
+          
+           response.cookie('token_and_id', { id: user_id, token: token}), {
+            expires: new Date(Date.now() + '7d'),
+            secure: false, // set to true if your using https
+            httpOnly: true,
+          };
+
+          // need next because reponse is not sent in a cookie?
+          return next();
+        
+
+      });
+    
+  });  
+
+}
+
+
+
 module.exports = {
   getUsers,
   getUserById,
   createUser,
   updateUser,
   deleteUser,
+  getLogin,
 }
