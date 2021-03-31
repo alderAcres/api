@@ -95,7 +95,6 @@ const getUserById = (request, response) => {
 
 //Create new user
 const createUser = (req, res, next) => {
-  console.log('res.locals', res.locals)
   const {email, password} = res.locals.userData
   const cryptPw = bcrypt.hashSync(password, SALT_WORK_FACTOR)
   
@@ -104,8 +103,8 @@ const createUser = (req, res, next) => {
       throw error; 
       next()
     }
-   
-    res.status(200).send(`User added with ID: ${results.rows[0].user_id}`)
+    res.locals.userId = results.rows[0].user_id;
+    next();
   })
 }
 
@@ -126,14 +125,17 @@ const updateUser = (request, response) => {
   )
 }
 
-//storePref
-const storePreferences = (request, response) => {
+//STORE PREFERENCES SURING USER SIGNUP
+const storeUserPreferences = (req, res, next) => {
+  const userID = res.locals.userId;
+  console.log('reslocas', res.locals)
   const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
-  pool.query('INSERT INTO preferances (children, cats, spayed, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6) RETURNING preferences_id', [children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
+ 
+  pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, spayed_neutered, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING preferences_id', [userID, children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
     if (error) {
       throw error;
     }
-    response.status(200).send(`User added with ID: ${res.locals.userData} and preferences added to database`)
+    res.status(200).send(`User added with ID: ${userID} and preferences stored in DB`)
 })
 }
 
@@ -156,5 +158,6 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
-  getLogin
+  getLogin,
+  storeUserPreferences
 }

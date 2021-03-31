@@ -9,7 +9,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
 app.use(bodyParser.json())
 
-app.post('/signup', receiveUserData, db.createUser)
+app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences)
 app.get('/users', db.getUsers)
 app.post('/login', db.getLogin)
 app.get('/users/:id', db.getUserById)
