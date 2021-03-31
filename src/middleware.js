@@ -30,6 +30,8 @@ function getDogDataSort(req, res, next){
   next();
 }
 async function getDogData(req, res, next){
+  //grab preferences with user_id (sent back in the request cookie?) for boolean vals
+  //and then filter preferences accordingly
     const preferences = res.locals.pref;  
     const data = res.locals.data;
     await axios({

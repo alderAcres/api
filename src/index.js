@@ -21,9 +21,9 @@ app.get('/api', getToken, getDogData, (req, res) => {
    res.status(200).send(res.locals.dogData.slice(0,100))
 })
 
-app.post('/api', getToken, getDogDataSort, getDogData, (req, res) => {
-   res.status(200).send(res.locals.pref)
-})
+// app.post('/api', getToken, getDogDataSort, getDogData, (req, res) => {
+//    res.status(200).send(res.locals.pref)
+// })
 
 
 app.use((error, req, res, next) => {
