@@ -1,6 +1,6 @@
 const Pool = require('pg').Pool;
 const bcrypt = require('bcryptjs');
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 const conString = "postgres://gekdbamy:bGsx_AIPrccGvowhA5gB4sHDJxTR9iHZ@queenie.db.elephantsql.com:5432/gekdbamy" //our DB url
 const SALT_WORK_FACTOR = 10;
@@ -80,7 +80,7 @@ const getLogin = (request, response) => {
           }
       );
   })
-
+}
 
 //GET USER BY ID
 const getUserById = (request, response) => {
@@ -94,15 +94,18 @@ const getUserById = (request, response) => {
 }
 
 //Create new user
-const createUser = (request, response) => {
-  const { email, password } = request.body
+const createUser = (req, res, next) => {
+  console.log('res.locals', res.locals)
+  const {email, password} = res.locals.userData
   const cryptPw = bcrypt.hashSync(password, SALT_WORK_FACTOR)
   
   pool.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING user_id', [email, cryptPw], (error, results) => {
     if (error) {
-      throw error
+      throw error; 
+      next()
     }
-    response.status(200).send(`User added with ID: ${results.rows[0].user_id}`)
+   
+    res.status(200).send(`User added with ID: ${results.rows[0].user_id}`)
   })
 }
 
@@ -123,6 +126,18 @@ const updateUser = (request, response) => {
   )
 }
 
+//storePref
+const storePreferences = (request, response) => {
+  const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
+  pool.query('INSERT INTO preferances (children, cats, spayed, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6) RETURNING preferences_id', [children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
+    if (error) {
+      throw error;
+    }
+    response.status(200).send(`User added with ID: ${res.locals.userData} and preferences added to database`)
+})
+}
+
+
 //Delete a User
 const deleteUser = (request, response) => {
   const id = parseInt(request.params.id)
@@ -141,4 +156,5 @@ module.exports = {
   createUser,
   updateUser,
   deleteUser,
+  getLogin
 }

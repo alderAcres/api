@@ -11,8 +11,16 @@ const status = 'adoptable';
 2. if condiitonal asking all variables filter dog data
 */
 
-//filter dogs without photo
-//create funciton to compare objects and see if they have the same properties (shallow clone)
+function receiveUserData(req, res, next) {
+  if(!req.body) {
+    throw Error;
+  }
+console.log('receiveUserData hitting', req.body)
+res.locals.pref = req.body.preferences
+res.locals.userData = req.body.user
+next()
+}
+
 function getDogDataSort(req, res, next){
   console.log(req.body)
   let prefObj = {}
@@ -80,5 +88,6 @@ async function getDogData(req, res, next){
   module.exports = {
       getToken,
       getDogData,
-      getDogDataSort
+      getDogDataSort,
+      receiveUserData
   }
