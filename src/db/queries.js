@@ -1,6 +1,6 @@
 const Pool = require('pg').Pool;
 const bcrypt = require('bcryptjs');
-const jwt = require("jsonwebtoken");
+const jwt = require('jsonwebtoken');
 
 const conString = "postgres://gekdbamy:bGsx_AIPrccGvowhA5gB4sHDJxTR9iHZ@queenie.db.elephantsql.com:5432/gekdbamy" //our DB url
 const SALT_WORK_FACTOR = 10;
@@ -46,15 +46,17 @@ const getUserById = (request, response) => {
 }
 
 //Create new user
-const createUser = (request, response) => {
-  const { email, password } = request.body
+const createUser = (req, res, next) => {
+  const {email, password} = res.locals.userData
   const cryptPw = bcrypt.hashSync(password, SALT_WORK_FACTOR)
   
   pool.query('INSERT INTO users (email, password) VALUES ($1, $2) RETURNING user_id', [email, cryptPw], (error, results) => {
     if (error) {
-      throw error
+      throw error; 
+      next()
     }
-    response.status(200).send(`User added with ID: ${results.rows[0].user_id}`)
+    res.locals.userId = results.rows[0].user_id;
+    next();
   })
 }
 
@@ -75,6 +77,21 @@ const updateUser = (request, response) => {
   )
 }
 
+//STORE PREFERENCES SURING USER SIGNUP
+const storeUserPreferences = (req, res, next) => {
+  const userID = res.locals.userId;
+  console.log('reslocas', res.locals)
+  const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
+ 
+  pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, spayed_neutered, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING preferences_id', [userID, children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
+    if (error) {
+      throw error;
+    }
+    res.status(200).send(`User added with ID: ${userID} and preferences stored in DB`)
+})
+}
+
+
 //Delete a User
 const deleteUser = (request, response) => {
   const id = parseInt(request.params.id)
@@ -93,6 +110,7 @@ const getLogin = (request, response, next) => {
     if (error) {
       throw error
     }
+    console.log('RESULTS', results)
     if (results.rows.length === 0) {
       // status 401: unauthorized client
       response.status(401).json({ message: "Invalid Username" });
@@ -127,8 +145,7 @@ const getLogin = (request, response, next) => {
           //http://expressjs.com/en/5x/api.html#res.cookie
 
           //return response.json({ user_id, token });
-
-           console.log({ id: user_id, token: token})
+           console.log('POSTING ID and TOKEN', { id: user_id, token: token})
           
            response.cookie('token_and_id', { id: user_id, token: token}), {
             expires: new Date(Date.now() + '7d'),
@@ -136,10 +153,7 @@ const getLogin = (request, response, next) => {
             httpOnly: true,
           };
 
-          // need next because reponse is not sent in a cookie?
-          return next();
-        
-
+          response.status(200).send('Login successful')
       });
     
   });  
@@ -155,4 +169,5 @@ module.exports = {
   updateUser,
   deleteUser,
   getLogin,
+  storeUserPreferences
 }

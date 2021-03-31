@@ -1,14 +1,15 @@
 const express = require ('express');
 const bodyParser = require('body-parser');
-const { getToken, getDogData, getDogDataSort } = require('./middleware');
+const { getToken, getDogData, getDogDataSort, receiveUserData } = require('./middleware');
 const db = require('./db/queries')
 const PORT = process.env.PORT || 3001;
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
+app.use(bodyParser.json())
 
-app.post('/signup', db.createUser)
+app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences)
 app.get('/users', db.getUsers)
 app.post('/login', db.getLogin)
 app.get('/users/:id', db.getUserById)
@@ -20,9 +21,10 @@ app.get('/api', getToken, getDogData, (req, res) => {
    res.status(200).send(res.locals.dogData.slice(0,100))
 })
 
-app.post('/api', getToken, getDogDataSort, getDogData, (req, res) => {
-   res.status(200).send(res.locals.pref)
-})
+// app.post('/api', getToken, getDogDataSort, getDogData, (req, res) => {
+//    res.status(200).send(res.locals.pref)
+// })
+
 
 app.use((error, req, res, next) => {
     console.log( "app error:", error.message);
