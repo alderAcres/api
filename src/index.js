@@ -7,15 +7,26 @@ const app = express();
 
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(bodyParser.json())
 
-app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences)
-app.get('/users', db.getUsers)
+app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', '*');
+    next();
+  });
+
+//This route is accessed after a user has gone through signup (creating preferences) and logged in.
+//It display all the dogs that have been filtered out according to user's preferences on the home page
+app.get('/api/:id', db.accessPreferences, getToken, getDogData, (req, res) => {
+    res.status(200).send(res.locals.dogData)
+})
+
 app.post('/login', db.getLogin)
+app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences)
+
+//manipulate or access user data
 app.get('/users/:id', db.getUserById)
-app.get('/users', db.getUsers)
 app.put('/users/:id', db.updateUser)
 app.delete('/users/:id', db.deleteUser)
+app.get('/users', db.getUsers)
 
 app.get('/api', getToken, getDogData, (req, res) => {
    res.status(200).send(res.locals.dogData.slice(0,100))
@@ -25,7 +36,7 @@ app.get('/api', getToken, getDogData, (req, res) => {
 //    res.status(200).send(res.locals.pref)
 // })
 
-
+//error handling
 app.use((error, req, res, next) => {
     console.log( "app error:", error.message);
     res.status(error.status || 500).json({
