@@ -18,6 +18,9 @@ app.use((req, res, next) => {
 app.get('/api/:id', db.accessPreferences, getToken, getDogData, (req, res) => {
     res.status(200).send(res.locals.dogData)
 })
+// app.get('/api', getToken, getDogData, (req, res) => {
+//     res.status(200).send(res.locals.dogData.slice(0,100))
+//  })
 
 app.post('/login', db.getLogin)
 app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences)
@@ -28,13 +31,6 @@ app.put('/users/:id', db.updateUser)
 app.delete('/users/:id', db.deleteUser)
 app.get('/users', db.getUsers)
 
-app.get('/api', getToken, getDogData, (req, res) => {
-   res.status(200).send(res.locals.dogData.slice(0,100))
-})
-
-// app.post('/api', getToken, getDogDataSort, getDogData, (req, res) => {
-//    res.status(200).send(res.locals.pref)
-// })
 
 //error handling
 app.use((error, req, res, next) => {

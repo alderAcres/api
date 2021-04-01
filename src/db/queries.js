@@ -79,15 +79,20 @@ const updateUser = (request, response) => {
 //STORE PREFERENCES DURING USER SIGNUP
 const storeUserPreferences = (req, res, next) => {
   const userID = res.locals.userId;
-  console.log('reslocas', res.locals)
-  const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
-
-pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, spayed_neutered, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING preferences_id', [userID, children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
-    if (error) {
-      throw error;
-    }
-    res.status(200).send({'userId': userID})
-})
+  // const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
+  const {children, cats, house_trained, special_needs, shots_current } = res.locals.pref;
+  pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6) RETURNING preferences_id', [userID, children, cats, house_trained, special_needs, shots_current], (error, results) => {
+        if (error) {
+          throw error;
+        }
+        res.status(200).send({'userId': userID})
+    })
+// pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, spayed_neutered, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING preferences_id', [userID, children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
+//     if (error) {
+//       throw error;
+//     }
+//     res.status(200).send({'userId': userID})
+// })
 }
 
 const accessPreferences = (request, response, next) => {
@@ -119,7 +124,6 @@ const getLogin = (request, response, next) => {
     if (error) {
       throw error
     }
-    console.log('RESULTS', results)
     if (results.rows.length === 0) {
       // status 401: unauthorized client
       response.status(401).json({ message: "Invalid Username" });
