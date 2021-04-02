@@ -160,8 +160,6 @@ const getLogin = (request, response, next) => {
 
 }
 
-
-
 module.exports = {
   getUsers,
   getUserById,
