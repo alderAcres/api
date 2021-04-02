@@ -1,6 +1,6 @@
 const express = require ('express');
 const bodyParser = require('body-parser');
-const { getToken, getDogData, getDogDataSort, receiveUserData } = require('./middleware');
+const { getToken, getDogData, receiveUserData } = require('./middleware');
 const db = require('./db/queries')
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -15,15 +15,13 @@ app.use((req, res, next) => {
 
 //This route is accessed after a user has gone through signup (creating preferences) and logged in.
 //It display all the dogs that have been filtered out according to user's preferences on the home page
-app.get('/api/:id', db.accessPreferences, getToken, getDogData, (req, res) => {
+app.get('/api/:id', db.accessPreferences, db.getPostedDogs, getToken, getDogData, (req, res) => {
     res.status(200).send(res.locals.dogData)
 })
-// app.get('/api', getToken, getDogData, (req, res) => {
-//     res.status(200).send(res.locals.dogData.slice(0,100))
-//  })
 
 app.post('/login', db.getLogin)
 app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences)
+app.post('/addDog/:id', db.postDog)
 
 //manipulate or access user data
 app.get('/users/:id', db.getUserById)
@@ -32,6 +30,8 @@ app.delete('/users/:id', db.deleteUser)
 app.get('/users', db.getUsers)
 app.post('/users/:user_id/dogs/:dog_id', db.addFavorite)
 
+//just using this route to test posted dogs (temporary)
+app.get('/getDogs', db.getPostedDogs)
 
 //error handling
 app.use((error, req, res, next) => {

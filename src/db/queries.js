@@ -79,20 +79,16 @@ const updateUser = (request, response) => {
 //STORE PREFERENCES DURING USER SIGNUP
 const storeUserPreferences = (req, res, next) => {
   const userID = res.locals.userId;
-  // const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
-  const {children, cats, house_trained, special_needs, shots_current } = res.locals.pref;
-  pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6) RETURNING preferences_id', [userID, children, cats, house_trained, special_needs, shots_current], (error, results) => {
-        if (error) {
-          throw error;
-        }
-        res.status(200).send({'userId': userID})
-    })
-// pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, spayed_neutered, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING preferences_id', [userID, children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
-//     if (error) {
-//       throw error;
-//     }
-//     res.status(200).send({'userId': userID})
-// })
+  
+  const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
+  const location = res.locals.location.zipcode;
+  
+  pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, spayed_nuetered, house_trained, special_needs, shots_current, location) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING preferences_id', [userID, children, cats, spayed, house_trained, special_needs, shots_current, location], (error, results) => {
+    if (error) {
+      throw error;
+    }
+    res.status(200).send({'userId': userID})
+})
 }
 
 //ADD FAVORITES
@@ -121,6 +117,30 @@ const accessPreferences = (request, response, next) => {
   next();
 })
 }
+
+//POST A DOG TO THE DATABASE
+const postDog = (request, response, next) => {
+  const userID = parseInt(request.params.id)
+  const {name, children, cats, spayed, special_needs, shots_current, age, gender, description, image, location} = request.body;
+  pool.query('INSERT INTO new_dogs (user_id, name, children_friendly, cat_friendly, spayed_newtered, special_needs, shots_current, age, gender, description, image, location) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING new_dogs_id', [userID, name, children, cats, spayed, special_needs, shots_current, age, gender, description, image, location], (error, results) => {
+    if (error) {
+      throw error;
+    }
+    response.status(200).send(`New dog added with the Id: ${results.rows[0].new_dogs_id}`)
+  })
+}
+
+//GET ALL DOGS THAT HAVE BEEN POSTED BY USERS
+const getPostedDogs = (req, res, next) => {
+  pool.query('SELECT * FROM new_dogs', (error, results) => {
+    if (error) {
+      throw error
+    }
+    res.locals.postedDogs = results.rows
+    next();
+  })
+}
+
 //Delete a User
 const deleteUser = (request, response) => {
   const id = parseInt(request.params.id)
@@ -197,5 +217,10 @@ module.exports = {
   getLogin,
   storeUserPreferences,
   accessPreferences,
+<<<<<<< HEAD
+  postDog,
+  getPostedDogs
+=======
   addFavorite
+>>>>>>> eb669cc34b0f3880ad1345ad5342898621291fae
 }
