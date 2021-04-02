@@ -95,6 +95,21 @@ const storeUserPreferences = (req, res, next) => {
 // })
 }
 
+//ADD FAVORITES
+const addFavorite = (req, res, next) => {
+
+  const userID = parseInt(req.params.user_id)
+  const dogID = parseInt(req.params.dog_id)
+
+  pool.query('INSERT INTO favorites (user_id, dog_id) VALUES ($1, $2) RETURNING favorites_id', [userID, dogID], (error, results) => {
+        if (error) {
+          throw error;
+        }
+        const favorite_id = results.rows[0].favorites_id;
+        res.status(200).send({'favorites_id': favorite_id})
+    })
+}
+
 const accessPreferences = (request, response, next) => {
   const userId = parseInt(request.params.id)
   console.log('user', userId)
@@ -173,8 +188,6 @@ const getLogin = (request, response, next) => {
 
 }
 
-
-
 module.exports = {
   getUsers,
   getUserById,
@@ -183,5 +196,6 @@ module.exports = {
   deleteUser,
   getLogin,
   storeUserPreferences,
-  accessPreferences
+  accessPreferences,
+  addFavorite
 }
