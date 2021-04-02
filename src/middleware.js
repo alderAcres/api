@@ -50,7 +50,6 @@ async function getDogData(req, res, next){
              }
       }
        }
-  
        for(let i = 0; i < res.locals.postedDogs.length; i++) {
         if(checksPostedDogPreferences(res.locals.postedDogs[i], pref)) {
           dogArr.push(res.locals.postedDogs[i])

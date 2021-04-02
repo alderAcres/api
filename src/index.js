@@ -28,6 +28,7 @@ app.get('/users/:id', db.getUserById)
 app.put('/users/:id', db.updateUser)
 app.delete('/users/:id', db.deleteUser)
 app.get('/users', db.getUsers)
+app.post('/users/:user_id/dogs/:dog_id', db.addFavorite)
 
 //just using this route to test posted dogs (temporary)
 app.get('/getDogs', db.getPostedDogs)
