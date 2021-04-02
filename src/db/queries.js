@@ -8,8 +8,7 @@ const SALT_WORK_FACTOR = 10;
 const SECRET = "NEVER EVER MAKE THIS PUBLIC IN PRODUCTION!";
 
 const pool = new Pool({
-  connectionString: conString,
-  max: 5
+  connectionString: conString
 });
 
 pool.connect(function(err) {
@@ -45,7 +44,7 @@ const getUserById = (request, response) => {
   })
 }
 
-//Create new user
+//CREATE NEW USER
 const createUser = (req, res, next) => {
   const {email, password} = res.locals.userData
   const cryptPw = bcrypt.hashSync(password, SALT_WORK_FACTOR)
@@ -60,7 +59,7 @@ const createUser = (req, res, next) => {
   })
 }
 
-//Update User Info
+//UPDATE USER
 const updateUser = (request, response) => {
   const id = parseInt(request.params.id)
   const { email, password } = request.body
@@ -77,21 +76,36 @@ const updateUser = (request, response) => {
   )
 }
 
-//STORE PREFERENCES SURING USER SIGNUP
+//STORE PREFERENCES DURING USER SIGNUP
 const storeUserPreferences = (req, res, next) => {
   const userID = res.locals.userId;
-  console.log('reslocas', res.locals)
-  const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
- 
-  pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, spayed_neutered, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING preferences_id', [userID, children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
+  // const {children, cats, spayed, house_trained, special_needs, shots_current } = res.locals.pref;
+  const {children, cats, house_trained, special_needs, shots_current } = res.locals.pref;
+  pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6) RETURNING preferences_id', [userID, children, cats, house_trained, special_needs, shots_current], (error, results) => {
+        if (error) {
+          throw error;
+        }
+        res.status(200).send({'userId': userID})
+    })
+// pool.query('INSERT INTO preferences (user_id, children_friendly, cat_friendly, spayed_neutered, house_trained, special_needs, shots_current) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING preferences_id', [userID, children, cats, spayed, house_trained, special_needs, shots_current], (error, results) => {
+//     if (error) {
+//       throw error;
+//     }
+//     res.status(200).send({'userId': userID})
+// })
+}
+
+const accessPreferences = (request, response, next) => {
+  const userId = parseInt(request.params.id)
+  console.log('user', userId)
+  pool.query('SELECT * FROM preferences WHERE user_id = $1 LIMIT 1', [userId], (error, results) => {
     if (error) {
       throw error;
     }
-    res.status(200).send(`User added with ID: ${userID} and preferences stored in DB`)
+  response.locals.pref = results.rows;
+  next();
 })
 }
-
-
 //Delete a User
 const deleteUser = (request, response) => {
   const id = parseInt(request.params.id)
@@ -110,7 +124,6 @@ const getLogin = (request, response, next) => {
     if (error) {
       throw error
     }
-    console.log('RESULTS', results)
     if (results.rows.length === 0) {
       // status 401: unauthorized client
       response.status(401).json({ message: "Invalid Username" });
@@ -167,5 +180,6 @@ module.exports = {
   updateUser,
   deleteUser,
   getLogin,
-  storeUserPreferences
+  storeUserPreferences,
+  accessPreferences
 }
