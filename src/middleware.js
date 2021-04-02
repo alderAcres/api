@@ -17,18 +17,24 @@ function receiveUserData(req, res, next) {
   }
 res.locals.pref = req.body.preferences
 res.locals.userData = req.body.user
+res.locals.location = req.body.location
 next()
 }
 
 async function getDogData(req, res, next){
     const pref = res.locals.pref;  
     const data = res.locals.data;
+
+    console.log('pref.location', pref[0].location)
+    const zipCode = pref[0].location.toString();
+   
+
     if(!pref) {
       throw Error;
       next();
     }
     await axios({
-        url: 'https://api.petfinder.com/v2/animals?limit=' + 100 + '&status=' + status,
+        url: 'https://api.petfinder.com/v2/animals?limit=' + 100 + '&status=' + status + '&location=' + zipCode + '&distance=' + 500,
         method: 'GET',
         headers: {
           'Authorization': 'Bearer ' + data.access_token,
@@ -38,11 +44,17 @@ async function getDogData(req, res, next){
       .then(petData => {
        let dogArr = [];
        for(let i = 0; i < petData.data.animals.length; i++) {
-         if(petData.data.animals[i].species === 'Dog') {
-             if(checksAllPreferences(petData.data.animals[i], pref)) {
+         if(petData.data.animals[i].species === 'Dog' && petData.data.animals[i].primary_photo_cropped) {
+             if(checksApiPreferences(petData.data.animals[i], pref)) {
                dogArr.push(petData.data.animals[i])
              }
       }
+       }
+  
+       for(let i = 0; i < res.locals.postedDogs.length; i++) {
+        if(checksPostedDogPreferences(res.locals.postedDogs[i], pref)) {
+          dogArr.push(res.locals.postedDogs[i])
+        }
        }
        console.log('DOG ARR LENGTH', dogArr.length)
        res.locals.dogData = dogArr;
@@ -51,7 +63,7 @@ async function getDogData(req, res, next){
       .catch(err => next(err))
   }
   
-  function checksAllPreferences(dog, userPreferences){
+  function checksApiPreferences(dog, userPreferences){
       if(!dog.environment.children || userPreferences.children == dog.environment.children 
       && !dog.environment.cats || userPreferences.cats == dog.environment.cats
       && !dog.attributes.spayed_neutered || userPreferences.spayed == dog.attributes.spayed_neutered
@@ -60,6 +72,14 @@ async function getDogData(req, res, next){
       && !dog.attributes.shots_current || userPreferences.shots_current == dog.attributes.shots_current) return true;
         else return false;
   }
+  function checksPostedDogPreferences(dog, userPreferences){
+    if(!dog.children_friendly || userPreferences.children == dog.children_friendly 
+    && !dog.cat_friendly || userPreferences.cats == dog.cat_friendly
+    && !dog.spayed_newtered || userPreferences.spayed == !dog.spayed_newtered
+    && !dog.special_needs || userPreferences.special_needs == dog.special_needs 
+    && !dog.shots_current || userPreferences.shots_current == dog.shots_current) return true;
+      else return false;
+}
   function getToken(req, res, next){
 
     axios.post('https://api.petfinder.com/v2/oauth2/token', 'grant_type=client_credentials&client_id=' + key + '&client_secret=' + secret)
