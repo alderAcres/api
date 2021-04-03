@@ -1,6 +1,7 @@
 const express = require ('express');
 const bodyParser = require('body-parser');
 const { getToken, getDogData, receiveUserData, displayUserFavs } = require('./middleware');
+const cors = require('cors');
 const db = require('./db/queries')
 const PORT = process.env.PORT || 3001;
 const app = express();
@@ -13,23 +14,25 @@ app.use((req, res, next) => {
     next();
   });
 
+app.use(cors())
+
 //This route is accessed after a user has gone through signup (creating preferences) and logged in.
 //It display all the dogs that have been filtered out according to user's preferences on the home page
 app.get('/api/:id', db.accessPreferences, db.getPostedDogs, getToken, getDogData, (req, res) => {
     res.status(200).send(res.locals.dogData)
 })
 
-app.post('/login', db.getLogin)
+app.post('/login', receiveUserData, db.getLogin)
 app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences, db.getLogin)
 app.post('/addDog/:id', db.postDog)
 
 //manipulate or access user data
+app.get('/users', db.getUsers)
 app.get('/users/:id', db.getUserById)
-app.get('/userDogs/:id', db.getDogsById)
 app.put('/users/:id', db.updateUser)
 app.delete('/users/:id', db.deleteUser)
-app.get('/users', db.getUsers)
 app.post('/users/:user_id/dogs/:dog_id', db.addFavorite)
+app.get('/userDogs/:id', db.getDogsById)
 app.get('/userFavs/:id', getToken, db.getUserFavorites, displayUserFavs)
 
 
