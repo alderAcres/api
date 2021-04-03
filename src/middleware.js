@@ -1,15 +1,9 @@
 const axios = require('axios');
 
-let key = 'apyx0Ol9KonQvo8YJp5ZetIUv5IEgX1xtKtsAQ1sfcCYy9YH9w';
-let secret = 'FY7ntewUL1pRq9Qd0DxAHIXGSyZ8yHcxNMcrKwH1';
+const key = 'apyx0Ol9KonQvo8YJp5ZetIUv5IEgX1xtKtsAQ1sfcCYy9YH9w';
+const secret = 'FY7ntewUL1pRq9Qd0DxAHIXGSyZ8yHcxNMcrKwH1';
 const org = 'RI77';
 const status = 'adoptable';
-
-//TODO
-/*
-1. destructure request body for individual variables rather than objects
-2. if condiitonal asking all variables filter dog data
-*/
 
 function receiveUserData(req, res, next) {
   if(!req.body) {
@@ -51,7 +45,7 @@ async function getDogData(req, res, next){
       }
        }
        for(let i = 0; i < res.locals.postedDogs.length; i++) {
-        if(checksPostedDogPreferences(res.locals.postedDogs[i], pref)) {
+        if(checksPostedDogPreferences(res.locals.postedDogs[i], pref, zipCode)) {
           dogArr.push(res.locals.postedDogs[i])
         }
        }
@@ -71,13 +65,38 @@ async function getDogData(req, res, next){
       && !dog.attributes.shots_current || userPreferences.shots_current == dog.attributes.shots_current) return true;
         else return false;
   }
-  function checksPostedDogPreferences(dog, userPreferences){
-    if(!dog.children_friendly || userPreferences.children == dog.children_friendly 
-    && !dog.cat_friendly || userPreferences.cats == dog.cat_friendly
-    && !dog.spayed_newtered || userPreferences.spayed == !dog.spayed_newtered
-    && !dog.special_needs || userPreferences.special_needs == dog.special_needs 
-    && !dog.shots_current || userPreferences.shots_current == dog.shots_current) return true;
-      else return false;
+  function checksPostedDogPreferences(dog, userPreferences, zipCode){
+    if(parseInt(zipCode) == dog.location 
+      && !dog.children_friendly || userPreferences.children == dog.children_friendly 
+      && !dog.cat_friendly || userPreferences.cats == dog.cat_friendly
+      && !dog.spayed_newtered || userPreferences.spayed == !dog.spayed_newtered
+      && !dog.special_needs || userPreferences.special_needs == dog.special_needs 
+      && !dog.shots_current || userPreferences.shots_current == dog.shots_current) return true;
+    else return false;
+}
+
+async function displayUserFavs(request, response, next){
+  const favoriteDogs = response.locals.dogFavs;
+  const data = response.locals.data;
+  let favArrResult = [];
+
+  for(let i = 0; i < favoriteDogs.length; i++) {
+    let dogId = favoriteDogs[i];
+    if(dogId.toString().length >= 4) {
+      await axios({
+        url: 'https://api.petfinder.com/v2/animals/' + dogId,
+        method: 'GET',
+        headers: {
+          'Authorization': 'Bearer ' + data.access_token,
+          'Content-Type': 'application/x-www-form-urlencoded'
+      }
+      }).then(dog => {
+        favArrResult.push(dog.data.animal)
+      })
+      .catch(err => response.send(err))
+    }
+  }
+  response.status(200).send(favArrResult)
 }
   function getToken(req, res, next){
 
@@ -92,5 +111,6 @@ async function getDogData(req, res, next){
   module.exports = {
       getToken,
       getDogData,
-      receiveUserData
+      receiveUserData,
+      displayUserFavs
   }

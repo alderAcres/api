@@ -91,20 +91,6 @@ const storeUserPreferences = (req, res, next) => {
 })
 }
 
-//ADD FAVORITES
-const addFavorite = (req, res, next) => {
-
-  const userID = parseInt(req.params.user_id)
-  const dogID = parseInt(req.params.dog_id)
-
-  pool.query('INSERT INTO favorites (user_id, dog_id) VALUES ($1, $2) RETURNING favorites_id', [userID, dogID], (error, results) => {
-        if (error) {
-          throw error;
-        }
-        const favorite_id = results.rows[0].favorites_id;
-        res.status(200).send({'favorites_id': favorite_id})
-    })
-}
 
 const accessPreferences = (request, response, next) => {
   const userId = parseInt(request.params.id)
@@ -141,6 +127,17 @@ const getPostedDogs = (req, res, next) => {
   })
 }
 
+//GET DOGS POSTED BY USER ID
+const getDogsById = (request, response) => {
+  const id = parseInt(request.params.id)
+  pool.query('SELECT * FROM new_dogs WHERE user_id = $1', [id], (error, results) => {
+    if (error) {
+      throw error
+    }
+    response.status(200).json(results.rows)
+  })
+}
+
 //Delete a User
 const deleteUser = (request, response) => {
   const id = parseInt(request.params.id)
@@ -153,8 +150,39 @@ const deleteUser = (request, response) => {
   })
 }
 
-const getLogin = (request, response, next) => {
+//SAVE DOG TO FAVORITES
+const addFavorite = (req, res, next) => {
 
+  const userID = parseInt(req.params.user_id)
+  const dogID = parseInt(req.params.dog_id)
+
+  pool.query('INSERT INTO favorites (user_id, dog_id) VALUES ($1, $2) RETURNING favorites_id', [userID, dogID], (error, results) => {
+        if (error) {
+          throw error;
+        }
+        const favorite_id = results.rows[0].favorites_id;
+        res.status(200).send({'favorites_id': favorite_id})
+    })
+}
+//GET USER FAVORITES
+const getUserFavorites = (request, response, next) => {
+  let favArr = [];
+  const id = parseInt(request.params.id)
+  pool.query('SELECT * FROM favorites WHERE user_id = $1', [id], (error, results) => {
+    if (error) {
+      throw error
+    }
+    for(let dog of results.rows){
+      favArr.push(dog.dog_id)
+    }
+    console.log('list of user favorites', favArr)
+    response.locals.dogFavs = favArr;
+    next()
+  })
+}
+
+
+const getLogin = (request, response, next) => {
   pool.query('SELECT * FROM users WHERE email=$1 LIMIT 1', [request.body.email], (error, results) => {
     if (error) {
       throw error
@@ -217,10 +245,9 @@ module.exports = {
   getLogin,
   storeUserPreferences,
   accessPreferences,
-<<<<<<< HEAD
-  postDog,
-  getPostedDogs
-=======
-  addFavorite
->>>>>>> eb669cc34b0f3880ad1345ad5342898621291fae
+  postDog, 
+  getPostedDogs,
+  getDogsById,
+  addFavorite,
+  getUserFavorites
 }
