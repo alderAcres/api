@@ -20,7 +20,7 @@ app.get('/api/:id', db.accessPreferences, db.getPostedDogs, getToken, getDogData
 })
 
 app.post('/login', db.getLogin)
-app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences)
+app.post('/signup', receiveUserData, db.createUser, db.storeUserPreferences, db.getLogin)
 app.post('/addDog/:id', db.postDog)
 
 //manipulate or access user data

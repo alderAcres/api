@@ -18,8 +18,6 @@ next()
 async function getDogData(req, res, next){
     const pref = res.locals.pref;  
     const data = res.locals.data;
-
-    console.log('pref.location', pref[0].location)
     const zipCode = pref[0].location.toString();
    
 
