@@ -108,11 +108,13 @@ const accessPreferences = (request, response, next) => {
 //POST A DOG TO THE DATABASE
 const postDog = (request, response, next) => {
   const userID = parseInt(request.params.id)
+  console.log(request.params)
   const {name, children, cats, spayed, special_needs, shots_current, age, gender, description, image, location} = request.body;
   pool.query('INSERT INTO new_dogs (user_id, name, children_friendly, cat_friendly, spayed_newtered, special_needs, shots_current, age, gender, description, image, location) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING new_dogs_id', [userID, name, children, cats, spayed, special_needs, shots_current, age, gender, description, image, location], (error, results) => {
     if (error) {
       throw error;
     }
+    console.log(results.rows[0])
     response.status(200).send(`New dog added with the Id: ${results.rows[0].new_dogs_id}`)
   })
 }
@@ -132,9 +134,11 @@ const getPostedDogs = (req, res, next) => {
 const getDogsById = (request, response) => {
   const id = parseInt(request.params.id)
   pool.query('SELECT * FROM new_dogs WHERE user_id = $1', [id], (error, results) => {
-    if (error) {
-      throw error
-    }
+    // if (error) {
+    //   throw error
+    // }
+    console.log(id)
+    console.log(results.rows)
     response.status(200).json(results.rows)
   })
 }
@@ -231,7 +235,7 @@ const getLogin = (request, response, next) => {
             httpOnly: true,
           };
 
-          response.status(200).send('Login successful')
+          response.status(200).send({ id: user_id, token: token})
       });
     
   });  

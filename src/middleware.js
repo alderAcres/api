@@ -18,7 +18,7 @@ next()
 async function getDogData(req, res, next){
     const pref = res.locals.pref;  
     const data = res.locals.data;
-    const zipCode = pref[0].location.toString();
+    const zipCode = pref[0].location ? pref[0].location.toString() : '07024';
    
 
     if(!pref) {
@@ -88,13 +88,16 @@ async function displayUserFavs(request, response, next){
           'Authorization': 'Bearer ' + data.access_token,
           'Content-Type': 'application/x-www-form-urlencoded'
       }
-      }).then(dog => {
+      }).then(dog => { 
         favArrResult.push(dog.data.animal)
       })
-      .catch(err => response.send(err))
+      .catch(err => console.log(err.data))
+      if(i === favoriteDogs.length - 1) {
+        response.status(200).send(JSON.stringify(favArrResult))
+      }
     }
   }
-  response.status(200).send(favArrResult)
+  
 }
   function getToken(req, res, next){
 
