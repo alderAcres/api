@@ -87,7 +87,8 @@ const storeUserPreferences = (req, res, next) => {
     if (error) {
       throw error;
     }
-    res.status(200).send({'userId': userID})
+    // res.status(200).send({'userId': userID})
+    next()
 })
 }
 
@@ -183,7 +184,8 @@ const getUserFavorites = (request, response, next) => {
 
 
 const getLogin = (request, response, next) => {
-  pool.query('SELECT * FROM users WHERE email=$1 LIMIT 1', [request.body.email], (error, results) => {
+  const { email, password } = response.locals.userData;
+  pool.query('SELECT * FROM users WHERE email=$1 LIMIT 1', [email], (error, results) => {
     if (error) {
       throw error
     }
@@ -198,7 +200,7 @@ const getLogin = (request, response, next) => {
      // https://www.npmjs.com/package/bcrypt
      bcrypt.compare(
       
-      request.body.password, 
+      password, 
       foundUser.rows[0].password, function(err,results) {
       
           // bcrypt.compare returns a boolean to us, if it is false the passwords did not match!
